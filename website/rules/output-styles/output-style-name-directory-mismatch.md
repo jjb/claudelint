@@ -1,18 +1,18 @@
 ---
-description: "Output style name must match the name its path implies"
+description: "Legacy output style name must match its directory"
 ---
 
 # output-style-name-directory-mismatch
 
-<RuleHeader description="Output style name must match the name its path implies" severity="error" :fixable="false" :configurable="false" category="Output Styles" />
+<RuleHeader description="Legacy output style name must match its directory" severity="error" :fixable="false" :configurable="false" category="Output Styles" />
 
 ## Rule Details
 
-Output styles are flat markdown files, and the filename becomes the style name unless the frontmatter sets `name`. This rule checks that an explicit `name` agrees with the filename, so a file cannot appear to define one style while registering another. In a directory-per-style layout the containing directory supplies the name instead, and `name` is compared with that.
+Claude Code output styles are flat markdown files. An explicit frontmatter `name` overrides the filename and does not need to match it. This rule skips flat styles. For compatibility, it still checks names in legacy directory-per-style layouts. It is not included in the recommended preset.
 
 ### Incorrect
 
-Output style name does not match its filename (file at .claude/output-styles/compact.md)
+Legacy output style name differs from its directory (file at output-styles/compact/style.md)
 
 ```yaml
 ---
@@ -24,11 +24,11 @@ Output style content here.
 
 ### Correct
 
-Output style name matches its filename (file at .claude/output-styles/compact.md)
+Flat output styles may override the filename (file at output-styles/compact.md)
 
 ```yaml
 ---
-name: compact
+name: Diagrams first
 ---
 
 Output style content here.
@@ -36,7 +36,7 @@ Output style content here.
 
 ## How To Fix
 
-Either rename the file to match the name in frontmatter, or update the name in frontmatter to match the filename. Omitting `name` entirely is also valid — the filename supplies it.
+Use a flat file in output-styles/ with any frontmatter name. For a legacy nested layout, align the name with its containing directory or disable this convention rule.
 
 ## Options
 

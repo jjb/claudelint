@@ -25,7 +25,7 @@ export function getParentDirectoryName(filePath: string): string {
 }
 
 /**
- * Gets the style name Claude Code will use for an output style file.
+ * Gets the path-derived fallback name for an output style file.
  *
  * Output styles are flat files whose filename is the style name, so the name comes from the
  * filename. Files one level deeper (a directory-per-style layout) take the name from the

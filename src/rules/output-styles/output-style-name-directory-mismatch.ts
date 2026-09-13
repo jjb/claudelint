@@ -1,11 +1,8 @@
 /**
  * Rule: output-style-name-directory-mismatch
  *
- * Validates that the output style name in frontmatter matches the name its path implies.
- *
- * Output styles are flat files whose filename is the style name, so `name` is compared with
- * the filename. In a directory-per-style layout the containing directory supplies the name
- * instead, and that is what `name` is compared with.
+ * Checks the naming convention of legacy directory-per-style layouts.
+ * Flat output styles allow an explicit frontmatter name to override the filename.
  */
 
 import { Rule, RuleContext } from '../../types/rule';
@@ -17,7 +14,7 @@ export const rule: Rule = {
   meta: {
     id: 'output-style-name-directory-mismatch',
     name: 'Output Style Name Directory Mismatch',
-    description: 'Output style name must match the name its path implies',
+    description: 'Legacy output style name must match its directory',
     category: 'OutputStyles',
     severity: 'error',
     fixable: false,
@@ -25,21 +22,19 @@ export const rule: Rule = {
     since: '0.2.0',
     docUrl: 'https://claudelint.com/rules/output-styles/output-style-name-directory-mismatch',
     docs: {
-      recommended: true,
-      summary: 'Ensures the output style name in frontmatter matches the name implied by its path.',
-      rationale:
-        'The filename is the fallback style name, so a disagreeing `name` makes it ambiguous which style a file defines.',
+      recommended: false,
+      summary: 'Checks name consistency in legacy directory-per-style layouts.',
+      rationale: 'This optional convention keeps legacy directory-per-style trees consistent.',
       details:
-        'Output styles are flat markdown files, and the filename becomes the style name unless the ' +
-        'frontmatter sets `name`. This rule checks that an explicit `name` agrees with the filename, ' +
-        'so a file cannot appear to define one style while registering another. In a ' +
-        'directory-per-style layout the containing directory supplies the name instead, and `name` is ' +
-        'compared with that.',
+        'Claude Code output styles are flat markdown files. An explicit frontmatter `name` ' +
+        'overrides the filename and does not need to match it. This rule skips flat styles. ' +
+        'For compatibility, it still checks names in legacy directory-per-style layouts. ' +
+        'It is not included in the recommended preset.',
       examples: {
         incorrect: [
           {
             description:
-              'Output style name does not match its filename (file at .claude/output-styles/compact.md)',
+              'Legacy output style name differs from its directory (file at output-styles/compact/style.md)',
             code: '---\nname: verbose\n---\n\nOutput style content here.',
             language: 'yaml',
           },
@@ -47,15 +42,15 @@ export const rule: Rule = {
         correct: [
           {
             description:
-              'Output style name matches its filename (file at .claude/output-styles/compact.md)',
-            code: '---\nname: compact\n---\n\nOutput style content here.',
+              'Flat output styles may override the filename (file at output-styles/compact.md)',
+            code: '---\nname: Diagrams first\n---\n\nOutput style content here.',
             language: 'yaml',
           },
         ],
       },
       howToFix:
-        'Either rename the file to match the name in frontmatter, or update the name in frontmatter ' +
-        'to match the filename. Omitting `name` entirely is also valid — the filename supplies it.',
+        'Use a flat file in output-styles/ with any frontmatter name. For a legacy nested ' +
+        'layout, align the name with its containing directory or disable this convention rule.',
       relatedRules: ['output-style-body-too-short', 'output-style-missing-guidelines'],
     },
   },
@@ -63,7 +58,7 @@ export const rule: Rule = {
     const { filePath, fileContent } = context;
 
     // Only validate .md files (output style files)
-    if (!filePath.endsWith('.md')) {
+    if (!filePath.endsWith('.md') || isFlatOutputStyle(filePath)) {
       return;
     }
 
@@ -76,10 +71,8 @@ export const rule: Rule = {
     const pathName = getOutputStyleName(filePath);
 
     if (frontmatter.name !== pathName) {
-      const source = isFlatOutputStyle(filePath) ? 'file name' : 'directory name';
-
       context.report({
-        message: `Output style name "${frontmatter.name}" does not match ${source} "${pathName}"`,
+        message: `Output style name "${frontmatter.name}" does not match directory name "${pathName}"`,
       });
     }
   },
